@@ -13,10 +13,10 @@ import { apiErrorHandler } from '../../../utils'
 import {
   AlertCircleIcon,
   CheckIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
+  CodeIcon,
   GlobeIcon,
   KeyIcon,
+  PencilIcon,
   PlugIcon,
   RetryIcon,
   SpinnerIcon,
@@ -260,7 +260,7 @@ export const ConnectionDetails = memo(function ConnectionDetails() {
       )}
 
       {/* LSP 信息 */}
-      <SectionHeader icon={<ChevronDownIcon size={11} />} title={t('sidebar.connectionLsp')} count={lspServers.length} />
+      <SectionHeader icon={<CodeIcon size={11} />} title={t('sidebar.connectionLsp')} count={lspServers.length} />
       {lspServers.length === 0 ? (
         <div className="px-3 pb-1 text-text-500">{t('sidebar.connectionNoLsp')}</div>
       ) : (
@@ -286,7 +286,7 @@ export const ConnectionDetails = memo(function ConnectionDetails() {
 
       {/* 格式化器信息 */}
       <SectionHeader
-        icon={<ChevronRightIcon size={11} />}
+        icon={<PencilIcon size={11} />}
         title={t('sidebar.connectionFormatter')}
         count={formatters.length}
       />
