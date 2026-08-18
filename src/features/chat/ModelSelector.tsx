@@ -366,6 +366,10 @@ export const ModelSelector = memo(
     const searchInputRef = useRef<HTMLInputElement>(null)
     const listRef = useRef<HTMLDivElement>(null)
     const menuRef = useRef<HTMLDivElement>(null)
+    const marqueeOuterRef = useRef<HTMLSpanElement>(null)
+    const marqueeInnerRef = useRef<HTMLSpanElement>(null)
+    const [marqueeHover, setMarqueeHover] = useState(false)
+    const [marquee, setMarquee] = useState({ dist: 0, duration: 0 })
     const ignoreMouseRef = useRef(false)
     const lastMousePosRef = useRef({ x: 0, y: 0 })
     const openFocusTargetRef = useRef<'search' | 'list'>('search')
@@ -477,6 +481,27 @@ export const ModelSelector = memo(
     }, [constrainToRef, trigger])
 
     useImperativeHandle(ref, () => ({ openMenu }), [openMenu])
+
+    // 工具栏版：测量文本溢出，hover 时滚动显示完整内容
+    useEffect(() => {
+      if (trigger !== 'toolbar') return
+      const outer = marqueeOuterRef.current
+      const inner = marqueeInnerRef.current
+      if (!outer || !inner) return
+      const measure = () => {
+        const dist = Math.max(0, inner.scrollWidth - outer.clientWidth)
+        setMarquee(
+          dist > 0
+            ? { dist, duration: Math.max(0.3, Math.min(4, dist / 40)) }
+            : { dist: 0, duration: 0 },
+        )
+      }
+      measure()
+      const ro = new ResizeObserver(measure)
+      ro.observe(outer)
+      ro.observe(inner)
+      return () => ro.disconnect()
+    }, [trigger, displayName])
 
     // ---- Select / Pin ----
 
@@ -822,13 +847,26 @@ export const ModelSelector = memo(
           }}
           disabled={disabled || isLoading}
           aria-expanded={isOpen}
+          onMouseEnter={() => setMarqueeHover(true)}
+          onMouseLeave={() => setMarqueeHover(false)}
           className="flex items-center gap-1.5 px-2 py-1.5 text-[length:var(--fs-base)] rounded-lg transition-all duration-150 hover:bg-bg-200 active:scale-95 cursor-pointer min-w-0 overflow-hidden max-w-[180px] w-full"
           title={selectedModel?.name || t('modelSelector.selectModel')}
         >
           <span className="text-text-400 shrink-0">
             <CpuIcon />
           </span>
-          <span className="text-[length:var(--fs-sm)] text-text-300 truncate min-w-0">{displayName}</span>
+          <span ref={marqueeOuterRef} className="flex-1 min-w-0 overflow-hidden">
+            <span
+              ref={marqueeInnerRef}
+              className="inline-block whitespace-nowrap text-[length:var(--fs-sm)] text-text-300"
+              style={{
+                transform: marqueeHover && marquee.dist > 0 ? `translateX(${-marquee.dist}px)` : 'translateX(0)',
+                transition: `transform ${marquee.duration}s ease`,
+              }}
+            >
+              {displayName}
+            </span>
+          </span>
         </button>
       )
 
