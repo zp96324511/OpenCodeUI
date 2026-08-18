@@ -106,6 +106,54 @@ function useFlatList(
 }
 
 // ============================================
+// ModelItemName — 列表项名称：默认省略号，hover 滚动显示完整
+// ============================================
+
+function ModelItemName({ name, className }: { name: string; className: string }) {
+  const outerRef = useRef<HTMLSpanElement>(null)
+  const innerRef = useRef<HTMLSpanElement>(null)
+  const [hover, setHover] = useState(false)
+  const [marquee, setMarquee] = useState({ dist: 0, duration: 0 })
+
+  useEffect(() => {
+    const outer = outerRef.current
+    if (!outer) return
+    const measure = () => {
+      const dist = Math.max(0, outer.scrollWidth - outer.clientWidth)
+      setMarquee(
+        dist > 0
+          ? { dist, duration: Math.max(0.3, Math.min(4, dist / 40)) }
+          : { dist: 0, duration: 0 },
+      )
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(outer)
+    return () => ro.disconnect()
+  }, [name])
+
+  return (
+    <span
+      ref={outerRef}
+      className={`truncate min-w-0 flex-1 font-medium ${className}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <span
+        ref={innerRef}
+        className={hover && marquee.dist > 0 ? 'inline-block whitespace-nowrap' : ''}
+        style={{
+          transform: hover && marquee.dist > 0 ? `translateX(${-marquee.dist}px)` : 'translateX(0)',
+          transition: `transform ${marquee.duration}s ease`,
+        }}
+      >
+        {name}
+      </span>
+    </span>
+  )
+}
+
+// ============================================
 // ModelListPanel — 列表面板
 // ============================================
 
@@ -265,9 +313,10 @@ const ModelListPanel = memo(function ModelListPanel({
                   >
                     {/* Left: name + capability icons */}
                     <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-                      <span className={`truncate font-medium ${isSelected ? 'text-accent-main-100' : 'text-text-100'}`}>
-                        {model.name}
-                      </span>
+                      <ModelItemName
+                        name={model.name}
+                        className={isSelected ? 'text-accent-main-100' : 'text-text-100'}
+                      />
                       <div
                         aria-hidden="true"
                         className={`flex items-center gap-1 flex-shrink-0 transition-opacity ${isHL || isSelected ? 'opacity-60' : 'opacity-25'}`}
