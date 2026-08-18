@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback, useState, useMemo, useSyncExternalStore, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, PencilIcon, TrashIcon, ComposeIcon, PinIcon } from '../../components/Icons'
+import { MarqueeText } from '../../components/MarqueeText'
 import { getSelectionRoundClass } from './selectionRound'
 import { formatRelativeTime } from '../../utils/dateUtils'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
@@ -688,12 +689,12 @@ export function SessionListItem({
               showActions ? 'pr-20' : 'pr-0 group-hover:pr-20'
             }`}
           >
-            <span
-              className="min-w-0 flex-1 truncate text-[length:var(--fs-sm)]"
+            <MarqueeText
+              className="flex-1 text-[length:var(--fs-sm)]"
               title={session.title || t('sessions.untitledChat')}
             >
               {session.title || t('sessions.untitledChat')}
-            </span>
+            </MarqueeText>
 
             {((hasSummaryStats && session.summary) || session.time?.updated) && (
               <div
@@ -803,8 +804,10 @@ export function SessionListItem({
         <div
           className={`flex-1 min-w-0 transition-[padding] duration-200 ${showActions ? 'pr-[88px]' : 'pr-1 group-hover:pr-[88px]'}`}
         >
-          <p
-            className={`${isCompact ? 'text-[length:var(--fs-md)]' : 'text-[length:var(--fs-base)]'} truncate font-medium ${
+          <MarqueeText
+            className={`block w-full font-medium ${
+              isCompact ? 'text-[length:var(--fs-md)]' : 'text-[length:var(--fs-base)]'
+            } ${
               (isEditMode ? isChecked : isSelected)
                 ? 'text-text-100'
                 : 'text-text-200 group-hover:text-text-100'
@@ -812,7 +815,7 @@ export function SessionListItem({
             title={session.title || t('sessions.untitledChat')}
           >
             {session.title || t('sessions.untitledChat')}
-          </p>
+          </MarqueeText>
 
           <div
             className={`flex items-center ${isCompact ? 'mt-1' : 'mt-1.5'} h-4 text-[length:var(--fs-xxs)] text-text-400 gap-1 overflow-hidden`}
