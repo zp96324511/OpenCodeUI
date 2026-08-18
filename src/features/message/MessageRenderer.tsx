@@ -800,6 +800,8 @@ const AssistantMessageView = memo(function AssistantMessageView({
   // agent / model（仅 assistant 消息）
   const assistantInfo = info.role === 'assistant' ? (info as AssistantMessageInfo) : null
   const agent = assistantInfo?.agent || undefined
+  // 变体 = 思考强度，跟随模型显示开关
+  const modelVariant = assistantInfo?.variant || undefined
   // 优先用配置里的模型 name（useModels 是模块级单例缓存，不会重复请求），查不到回退原始 modelID
   const { models } = useModels(serverId)
   const modelLabel = useMemo(() => {
@@ -876,6 +878,7 @@ const AssistantMessageView = memo(function AssistantMessageView({
                   isStreaming={isStreaming}
                   agent={showStepFinish ? agent : undefined}
                   modelLabel={showStepFinish ? modelLabel : undefined}
+                  modelVariant={showStepFinish ? modelVariant : undefined}
                   completedAt={showTiming ? completed : undefined}
                 />
               )
@@ -906,6 +909,7 @@ const AssistantMessageView = memo(function AssistantMessageView({
                     turnDuration={showTiming ? turnDuration : undefined}
                     agent={agent}
                     modelLabel={modelLabel}
+                    modelVariant={modelVariant}
                     completedAt={showTiming ? completed : undefined}
                   />
                 )
@@ -960,6 +964,7 @@ interface ToolGroupProps {
   isStreaming?: boolean
   agent?: string
   modelLabel?: string
+  modelVariant?: string
   completedAt?: number
 }
 
@@ -978,6 +983,7 @@ const ToolGroup = memo(function ToolGroup({
   isStreaming,
   agent,
   modelLabel,
+  modelVariant,
   completedAt,
 }: ToolGroupProps) {
   const { t } = useTranslation('message')
@@ -1193,6 +1199,7 @@ const ToolGroup = memo(function ToolGroup({
             turnDuration={turnDuration}
             agent={agent}
             modelLabel={modelLabel}
+            modelVariant={modelVariant}
             completedAt={completedAt}
           />
         </div>

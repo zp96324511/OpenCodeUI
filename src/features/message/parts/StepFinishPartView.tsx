@@ -20,6 +20,8 @@ interface StepFinishPartViewProps {
   agent?: string
   /** model 显示名（来自消息 info） */
   modelLabel?: string
+  /** model 变体（思考强度，来自消息 info.variant） */
+  modelVariant?: string
   /** 消息完成时间戳（毫秒），用于显示完成时刻 */
   completedAt?: number
 }
@@ -30,6 +32,7 @@ export const StepFinishPartView = memo(function StepFinishPartView({
   turnDuration,
   agent,
   modelLabel,
+  modelVariant,
   completedAt,
 }: StepFinishPartViewProps) {
   const { t } = useTranslation('message')
@@ -53,7 +56,9 @@ export const StepFinishPartView = memo(function StepFinishPartView({
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 py-0.5 text-[length:var(--fs-xxs)] leading-4 text-text-500">
       {show.agent && agent && <span className="capitalize">{agent}</span>}
-      {show.model && modelLabel && <span>{modelLabel}</span>}
+      {show.model && modelLabel && (
+        <span>{modelVariant ? `${modelLabel} · ${modelVariant}` : modelLabel}</span>
+      )}
       {show.tokens && totalTokens > 0 && (
         <span
           title={`${t('stepFinish.inputTokens', { input: tokens.input })}, ${t('stepFinish.outputTokens', { output: tokens.output })}, ${t('stepFinish.reasoningTokens', { reasoning: tokens.reasoning })}, ${t('stepFinish.cacheRead', { read: tokens.cache.read })}, ${t('stepFinish.cacheWrite', { write: tokens.cache.write })}`}

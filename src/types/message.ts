@@ -104,6 +104,7 @@ export interface AssistantMessageInfo {
   parentID: string // 指向用户消息
   modelID: string
   providerID: string
+  variant?: string // 模型变体（opencode 配置里即思考强度，如 low/high）
   mode: string
   agent: string
   path: PathInfo
