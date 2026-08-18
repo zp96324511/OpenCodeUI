@@ -7,7 +7,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback, memo, forwardRef, useImperativeHandle } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDownIcon, SearchIcon, ThinkingIcon, EyeIcon, CheckIcon, PinIcon } from '../../components/Icons'
+import { ChevronDownIcon, SearchIcon, ThinkingIcon, EyeIcon, CheckIcon, PinIcon, CpuIcon } from '../../components/Icons'
 import { DropdownMenu } from '../../components/ui'
 import type { ModelInfo } from '../../api'
 import { useInputCapabilities } from '../../hooks/useInputCapabilities'
@@ -822,9 +822,12 @@ export const ModelSelector = memo(
           }}
           disabled={disabled || isLoading}
           aria-expanded={isOpen}
-          className="flex items-center px-2 py-1.5 text-[length:var(--fs-base)] rounded-lg transition-all duration-150 hover:bg-bg-200 active:scale-95 cursor-pointer min-w-0 overflow-hidden w-full"
+          className="flex items-center gap-1.5 px-2 py-1.5 text-[length:var(--fs-base)] rounded-lg transition-all duration-150 hover:bg-bg-200 active:scale-95 cursor-pointer min-w-0 overflow-hidden max-w-[180px] w-full"
           title={selectedModel?.name || t('modelSelector.selectModel')}
         >
+          <span className="text-text-400 shrink-0">
+            <CpuIcon />
+          </span>
           <span className="text-[length:var(--fs-sm)] text-text-300 truncate">{displayName}</span>
         </button>
       )
