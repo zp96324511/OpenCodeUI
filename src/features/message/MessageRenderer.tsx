@@ -809,6 +809,26 @@ const AssistantMessageView = memo(function AssistantMessageView({
     stepFinishDisplay.completedAt &&
     completed != null
 
+  // 消息流式但无任何可见输出内容时（初始思考 gap / reasoning 已结束但无新输出 / 无工具执行中），
+  // 在消息下方显示 working 指示器，让用户确认 agent 仍在工作
+  // —— 避免与 ReasoningPartView 的 spinner、文本光标、工具执行指示重复
+  const hasVisibleStreamingContent = useMemo(() => {
+    if (!isStreaming) return false
+    for (const p of parts) {
+      if (p.type === 'text') {
+        if (p.text.trim() && !p.synthetic) return true
+      } else if (p.type === 'reasoning') {
+        // 有内容且尚未结束（后面未出现其他 part）→ ReasoningPartView 正在展示 thinking
+        if (p.text.trim() && !endedReasoningIds.has(p.id)) return true
+      } else if (p.type === 'tool') {
+        if (p.state.status === 'pending' || p.state.status === 'running') return true
+      }
+    }
+    return false
+  }, [parts, isStreaming, endedReasoningIds])
+
+  const showWorkingIndicator = isStreaming && !hasVisibleStreamingContent
+
   if (!isStreaming && parts.length === 0) {
     // process/final 空内容时不占位
     if (processContentScope === 'process' || processContentScope === 'final') return null
@@ -905,6 +925,18 @@ const AssistantMessageView = memo(function AssistantMessageView({
           })}
         </div>
       </SmoothHeight>
+
+      {/* Agent 工作中指示器：流式但无可见输出时显示，确认 agent 仍在响应 */}
+      {showWorkingIndicator && processContentScope !== 'process' && processContentScope !== 'inline' && (
+        <div className="flex items-center gap-2 py-0.5 text-text-500" role="status" aria-live="polite">
+          <span className="flex items-center gap-1" aria-hidden="true">
+            <span className="working-indicator-dot" />
+            <span className="working-indicator-dot" />
+            <span className="working-indicator-dot" />
+          </span>
+          <span className="text-[length:var(--fs-xxs)]">{t('workingIndicator')}</span>
+        </div>
+      )}
 
       {/* Message-level error：过程壳内不重复挂错误 */}
       {messageError && processContentScope !== 'process' && processContentScope !== 'inline' && (

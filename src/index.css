@@ -990,6 +990,46 @@ body {
 }
 
 /* ============================================
+ * Working Indicator (agent streaming gap)
+ * agent 响应中但无可见输出时，消息下方的三点弹跳动画
+ * ============================================ */
+@keyframes working-dot-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+.working-indicator-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background-color: hsl(var(--text-400));
+  animation: working-dot-bounce 1.4s ease-in-out infinite;
+}
+
+.working-indicator-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.working-indicator-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .working-indicator-dot {
+    animation: none !important;
+    opacity: 0.6;
+  }
+}
+
+/* ============================================
  * CSS Containment - 优化布局性能，减少 CLS
  * ============================================ */
 

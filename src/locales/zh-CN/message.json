@@ -10,6 +10,7 @@
   "processedFor": "已处理 {{duration}}",
   "processing": "处理中...",
   "processingWithDuration": "处理中 {{duration}}",
+  "workingIndicator": "工作中...",
   "tokens": "token",
   "tokensK": "{{count}}k token",
   "defaultRenderer": {
