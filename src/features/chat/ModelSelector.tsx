@@ -905,7 +905,11 @@ export const ModelSelector = memo(
           <span ref={marqueeOuterRef} className="truncate min-w-0 flex-1">
             <span
               ref={marqueeInnerRef}
-              className={marqueeHover && marquee.dist > 0 ? 'inline-block whitespace-nowrap text-text-300' : 'text-text-300'}
+              className={
+                marqueeHover && marquee.dist > 0
+                  ? 'inline-block whitespace-nowrap text-[length:var(--fs-sm)] text-text-300'
+                  : 'text-[length:var(--fs-sm)] text-text-300'
+              }
               style={{
                 transform: marqueeHover && marquee.dist > 0 ? `translateX(${-marquee.dist}px)` : 'translateX(0)',
                 transition: `transform ${marquee.duration}s ease`,
