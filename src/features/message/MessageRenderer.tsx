@@ -278,8 +278,6 @@ export function messageHasFinalContent(message: Message): boolean {
 
 interface MessageRendererProps {
   message: Message
-  sessionIsStreaming?: boolean
-  isSessionLatestAssistant?: boolean
   allowStreamingLayoutAnimation?: boolean
   /** 回合总时长（毫秒），仅在回合最后一条 assistant 消息上有值 */
   turnDuration?: number
@@ -302,8 +300,6 @@ interface MessageRendererProps {
 
 export const MessageRenderer = memo(function MessageRenderer({
   message,
-  sessionIsStreaming = false,
-  isSessionLatestAssistant = false,
   allowStreamingLayoutAnimation = false,
   turnDuration,
   isTurnLatestAssistant = true,
@@ -334,8 +330,6 @@ export const MessageRenderer = memo(function MessageRenderer({
   return (
     <AssistantMessageView
       message={message}
-      sessionIsStreaming={sessionIsStreaming}
-      isSessionLatestAssistant={isSessionLatestAssistant}
       allowStreamingLayoutAnimation={allowStreamingLayoutAnimation}
       turnDuration={turnDuration}
       isTurnLatestAssistant={isTurnLatestAssistant}
@@ -704,8 +698,6 @@ const UserMessageView = memo(function UserMessageView({
 
 const AssistantMessageView = memo(function AssistantMessageView({
   message,
-  sessionIsStreaming = false,
-  isSessionLatestAssistant = false,
   allowStreamingLayoutAnimation = false,
   turnDuration,
   isTurnLatestAssistant = true,
@@ -715,8 +707,6 @@ const AssistantMessageView = memo(function AssistantMessageView({
   onEnsureParts,
 }: {
   message: Message
-  sessionIsStreaming?: boolean
-  isSessionLatestAssistant?: boolean
   allowStreamingLayoutAnimation?: boolean
   turnDuration?: number
   isTurnLatestAssistant?: boolean
@@ -838,15 +828,6 @@ const AssistantMessageView = memo(function AssistantMessageView({
   }, [parts, isStreaming, endedReasoningIds])
 
   const showWorkingIndicator = isStreaming && !hasVisibleStreamingContent
-  const showGapWorkingIndicator =
-    sessionIsStreaming &&
-    !isStreaming &&
-    completed != null &&
-    isSessionLatestAssistant &&
-    (processContentScope === 'all' || processContentScope === 'final')
-  const showWorkingIndicatorInMessage =
-    (showWorkingIndicator && processContentScope !== 'process' && processContentScope !== 'inline') ||
-    showGapWorkingIndicator
 
   if (!isStreaming && parts.length === 0) {
     // process/final 空内容时不占位
@@ -946,7 +927,7 @@ const AssistantMessageView = memo(function AssistantMessageView({
       </SmoothHeight>
 
       {/* Agent 工作中指示器：流式但无可见输出时显示，确认 agent 仍在响应 */}
-      {showWorkingIndicatorInMessage && (
+      {showWorkingIndicator && processContentScope !== 'process' && processContentScope !== 'inline' && (
         <div className="flex items-center gap-2 py-0.5 text-text-500" role="status" aria-live="polite">
           <span className="flex items-center gap-1" aria-hidden="true">
             <span className="working-indicator-dot" />
