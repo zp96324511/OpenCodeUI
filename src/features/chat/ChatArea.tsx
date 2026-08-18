@@ -112,6 +112,8 @@ export type ChatAreaHandle = {
 
 interface MessageBodyProps {
   message: Message
+  sessionIsStreaming: boolean
+  isSessionLatestAssistant?: boolean
   registerMessage?: (id: string, element: HTMLElement | null) => void
   onUndo?: (userMessageId: string) => void
   onFork?: (message: Message, forkMessageId?: string) => void | Promise<void>
@@ -126,6 +128,8 @@ interface MessageBodyProps {
 
 const MessageBody = memo(function MessageBody({
   message,
+  sessionIsStreaming,
+  isSessionLatestAssistant,
   registerMessage,
   onUndo,
   onFork,
@@ -149,6 +153,8 @@ const MessageBody = memo(function MessageBody({
         <div className={`message-renderer-shell min-w-0 group ${!isUser ? 'w-full' : ''}`}>
           <MessageRenderer
             message={message}
+            sessionIsStreaming={sessionIsStreaming}
+            isSessionLatestAssistant={isSessionLatestAssistant}
             allowStreamingLayoutAnimation={message.isStreaming ? allowStreamingLayoutAnimation : false}
             turnDuration={turnDuration}
             isTurnLatestAssistant={isTurnLatestAssistant}
@@ -169,6 +175,8 @@ const MessageBody = memo(function MessageBody({
 interface RowProps {
   virtualItem: VirtualItem
   item: ProcessTimelineItem
+  sessionIsStreaming: boolean
+  sessionLatestAssistantId: string | null
   maxWidthClass: string
   paddingClass: string
   rowYClass: string
@@ -188,6 +196,8 @@ const VirtualRow = memo(
   function VirtualRow({
     virtualItem,
     item,
+    sessionIsStreaming,
+    sessionLatestAssistantId,
     maxWidthClass,
     paddingClass,
     rowYClass,
@@ -229,6 +239,10 @@ const VirtualRow = memo(
           {item.kind === 'message' ? (
             <MessageBody
               message={item.message}
+              sessionIsStreaming={sessionIsStreaming}
+              isSessionLatestAssistant={
+                item.message.info.role === 'assistant' && item.message.info.id === sessionLatestAssistantId
+              }
               registerMessage={registerMessage}
               onUndo={onUndo}
               onFork={onFork}
@@ -255,6 +269,8 @@ const VirtualRow = memo(
                     <MessageBody
                       key={`${child.message.info.id}:${child.processContentScope}`}
                       message={child.message}
+                      sessionIsStreaming={sessionIsStreaming}
+                      isSessionLatestAssistant={child.message.info.id === sessionLatestAssistantId}
                       registerMessage={registerMessage}
                       onUndo={onUndo}
                       onFork={onFork}
@@ -271,6 +287,8 @@ const VirtualRow = memo(
                 {item.finalMessage && (
                   <MessageBody
                     message={item.finalMessage}
+                    sessionIsStreaming={sessionIsStreaming}
+                    isSessionLatestAssistant={item.finalMessage.info.id === sessionLatestAssistantId}
                     registerMessage={registerMessage}
                     onUndo={onUndo}
                     onFork={onFork}
@@ -294,6 +312,8 @@ const VirtualRow = memo(
     prev.virtualItem.start === next.virtualItem.start &&
     prev.virtualItem.size === next.virtualItem.size &&
     prev.item === next.item &&
+    prev.sessionIsStreaming === next.sessionIsStreaming &&
+    prev.sessionLatestAssistantId === next.sessionLatestAssistantId &&
     prev.maxWidthClass === next.maxWidthClass &&
     prev.paddingClass === next.paddingClass &&
     prev.rowYClass === next.rowYClass &&
@@ -373,6 +393,13 @@ export const ChatArea = memo(
         () => turnLatestAssistantIdsProp ?? buildTurnLatestAssistantIdSet(visibleMessages),
         [turnLatestAssistantIdsProp, visibleMessages],
       )
+      const sessionLatestAssistantId = useMemo(() => {
+        for (let index = visibleMessages.length - 1; index >= 0; index -= 1) {
+          const message = visibleMessages[index]
+          if (message.info.role === 'assistant') return message.info.id
+        }
+        return null
+      }, [visibleMessages])
 
       // 空 Working 壳闸门：入场完成 + 额外停顿；idle 清空；有 assistant 立刻挂
       const emptyShellGate = useEmptyWorkingShellGate(isStreaming, EMPTY_WORKING_SHELL_EXTRA_DELAY_MS)
@@ -981,6 +1008,8 @@ export const ChatArea = memo(
                     key={item.key}
                     virtualItem={item}
                     item={timelineItem}
+                    sessionIsStreaming={isStreaming}
+                    sessionLatestAssistantId={sessionLatestAssistantId}
                     maxWidthClass={maxWidthClass}
                     paddingClass={paddingClass}
                     rowYClass={getTimelineRowYClass(timelineItem, timeline[item.index - 1], timeline[item.index + 1])}

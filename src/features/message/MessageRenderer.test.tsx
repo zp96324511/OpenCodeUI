@@ -354,6 +354,38 @@ describe('working indicator (agent streaming gap)', () => {
     return render(<MessageRenderer message={merged} />)
   }
 
+function renderGapAssistant({
+    sessionIsStreaming = true,
+    isSessionLatestAssistant = true,
+    processContentScope = 'all',
+    messageIsStreaming = false,
+    completed = true,
+    parts,
+  }: {
+    sessionIsStreaming?: boolean
+    isSessionLatestAssistant?: boolean
+    processContentScope?: 'all' | 'process' | 'final' | 'inline'
+    messageIsStreaming?: boolean
+    completed?: boolean
+    parts?: Part[]
+  } = {}) {
+    const message = createAssistantMessage()
+    message.info = {
+      ...message.info,
+      time: completed ? { created: 1, completed: 2 } : { created: 1 },
+    }
+    message.isStreaming = messageIsStreaming
+    if (parts) message.parts = parts
+    return render(
+      <MessageRenderer
+        message={message}
+        sessionIsStreaming={sessionIsStreaming}
+        isSessionLatestAssistant={isSessionLatestAssistant}
+        processContentScope={processContentScope}
+      />,
+    )
+  }
+
   it('shows indicator when streaming with no visible content yet', () => {
     renderAssistant({ parts: [], isStreaming: true })
     expect(screen.getByText(workingText)).toBeInTheDocument()
@@ -442,5 +474,43 @@ describe('working indicator (agent streaming gap)', () => {
   it('hides indicator when not streaming', () => {
     renderAssistant({ parts: [], isStreaming: false })
     expect(screen.queryByText(workingText)).toBeNull()
+  })
+
+  it('shows indicator below completed latest assistant during session gap', () => {
+    renderGapAssistant()
+    expect(screen.getByText(workingText)).toBeInTheDocument()
+  })
+
+  it('hides gap indicator when session is idle', () => {
+    renderGapAssistant({ sessionIsStreaming: false })
+    expect(screen.queryByText(workingText)).toBeNull()
+  })
+
+  it('hides gap indicator on a non-latest assistant', () => {
+    renderGapAssistant({ isSessionLatestAssistant: false })
+    expect(screen.queryByText(workingText)).toBeNull()
+  })
+
+  it('hides gap indicator from process and inline scopes', () => {
+    renderGapAssistant({ processContentScope: 'process' })
+    expect(screen.queryByText(workingText)).toBeNull()
+
+    renderGapAssistant({ processContentScope: 'inline' })
+    expect(screen.queryByText(workingText)).toBeNull()
+  })
+
+  it('shows gap indicator in final scope', () => {
+    renderGapAssistant({ processContentScope: 'final' })
+    expect(screen.getByText(workingText)).toBeInTheDocument()
+  })
+
+  it('hides gap indicator before assistant completion', () => {
+    renderGapAssistant({ completed: false })
+    expect(screen.queryByText(workingText)).toBeNull()
+  })
+
+it('does not duplicate the indicator when message streaming owns the state', () => {
+    renderGapAssistant({ messageIsStreaming: true, parts: [] })
+    expect(screen.getAllByRole('status')).toHaveLength(1)
   })
 })
