@@ -1100,7 +1100,7 @@ export function SidePanel({
             opacity: showLabels ? 1 : 0,
           }}
         >
-          <a href="/" className="flex items-center whitespace-nowrap">
+          <a href={import.meta.env.BASE_URL} className="flex items-center whitespace-nowrap">
             <span className="text-[length:var(--fs-heading-3)] font-semibold text-text-100 tracking-tight">
               {t('header.openCode')}
             </span>

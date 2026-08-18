@@ -29,7 +29,8 @@ jobs:
 
       - run: npm run build
         env:
-          VITE_BASE_PATH: /OpenCodeUI/
+          # 相对 base：github.io/OpenCodeUI/ 与自定义域名（根路径）都能用
+          VITE_BASE_PATH: ./
 
       - uses: actions/upload-pages-artifact@v5
         with:

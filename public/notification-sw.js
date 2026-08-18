@@ -10,11 +10,12 @@ self.addEventListener('notificationclick', event => {
   const data = event.notification.data
   if (!data) return
 
-  // 构建跳转 URL
-  let url = '/'
+  // 应用根路径：github.io/OpenCodeUI/ 或自定义域名 /，由 SW 自身路径推导
+  const basePath = self.location.pathname.replace(/[^/]*$/, '')
+  let url = basePath
   if (data.sessionId) {
     const dir = data.directory ? `?dir=${data.directory}` : ''
-    url = `/#/session/${data.sessionId}${dir}`
+    url = `${basePath}#/session/${data.sessionId}${dir}`
   }
 
   // 聚焦已有窗口或打开新窗口

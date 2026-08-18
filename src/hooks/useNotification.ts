@@ -37,7 +37,7 @@ async function ensureServiceWorker(): Promise<ServiceWorkerRegistration | null> 
 
   swRegistering = true
   try {
-    swRegistration = await navigator.serviceWorker.register('/notification-sw.js')
+    swRegistration = await navigator.serviceWorker.register(import.meta.env.BASE_URL + 'notification-sw.js')
     return swRegistration
   } catch {
     return null
@@ -196,7 +196,7 @@ export function useNotification() {
 
     const notificationOptions: NotificationOptions = {
       body,
-      icon: '/opencode.svg',
+      icon: import.meta.env.BASE_URL + 'opencode.svg',
       tag: data?.sessionId || 'opencode',
       data,
     }
