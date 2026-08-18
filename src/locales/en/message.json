@@ -10,7 +10,6 @@
   "processedFor": "Worked for {{duration}}",
   "processing": "Processing...",
   "processingWithDuration": "Working for {{duration}}",
-  "workingIndicator": "Working...",
   "tokens": "tokens",
   "tokensK": "{{count}}k tokens",
   "defaultRenderer": {

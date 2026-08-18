@@ -7,7 +7,7 @@ import {
   messageHasProcessContent,
   splitProcessRenderItems,
 } from './MessageRenderer'
-import type { Message, MessageInfo, Part, StepFinishPart, TextPart, ToolPart } from '../../types/message'
+import type { Message, Part, StepFinishPart, TextPart, ToolPart } from '../../types/message'
 
 let mockRenderUserMarkdown = false
 let mockCollapseUserMessages = false
@@ -22,12 +22,6 @@ vi.mock('../../hooks', () => ({
     rootRef: () => undefined,
     headerRef: () => undefined,
     withScrollLock: (action: () => void) => action(),
-  }),
-  useCompositorExpand: () => ({
-    contentRef: () => undefined,
-    layoutOpen: true,
-    keepMounted: true,
-    panelClassName: '',
   }),
 }))
 
@@ -337,110 +331,5 @@ describe('process content split', () => {
     expect(messageHasProcessContent(plain)).toBe(false)
     expect(messageHasFinalContent(plain)).toBe(true)
     void splitProcessRenderItems
-  })
-})
-
-describe('working indicator (agent streaming gap)', () => {
-  const workingText = /Working|工作中/i
-
-  function renderAssistant(message: Partial<Message> & { isStreaming: boolean }) {
-    const base = createAssistantMessage()
-    const merged: Message = {
-      ...base,
-      ...message,
-      info: { ...base.info, ...(message.info ?? {}) } as MessageInfo,
-      parts: message.parts ?? [],
-    }
-    return render(<MessageRenderer message={merged} />)
-  }
-
-  it('shows indicator when streaming with no visible content yet', () => {
-    renderAssistant({ parts: [], isStreaming: true })
-    expect(screen.getByText(workingText)).toBeInTheDocument()
-  })
-
-  it('shows indicator when streaming with only completed tool parts', () => {
-    renderAssistant({
-      parts: [
-        {
-          id: 'tool-1',
-          sessionID: 'session-1',
-          messageID: 'assistant-1',
-          type: 'tool',
-          callID: 'call-1',
-          tool: 'bash',
-          state: {
-            status: 'completed',
-            input: { command: 'pwd' },
-            output: '/workspace',
-            title: 'pwd',
-            metadata: {},
-            time: { start: 1, end: 2 },
-          },
-        } satisfies ToolPart,
-      ],
-      isStreaming: true,
-    })
-    expect(screen.getByText(workingText)).toBeInTheDocument()
-  })
-
-  it('hides indicator while text is streaming', () => {
-    renderAssistant({
-      parts: [
-        {
-          id: 'text-1',
-          sessionID: 'session-1',
-          messageID: 'assistant-1',
-          type: 'text',
-          text: 'partial',
-        } satisfies TextPart,
-      ],
-      isStreaming: true,
-    })
-    expect(screen.queryByText(workingText)).toBeNull()
-  })
-
-  it('hides indicator while reasoning is streaming', () => {
-    renderAssistant({
-      parts: [
-        {
-          id: 'reason-1',
-          sessionID: 'session-1',
-          messageID: 'assistant-1',
-          type: 'reasoning',
-          text: 'thinking...',
-          time: { start: 1 },
-        },
-      ],
-      isStreaming: true,
-    })
-    expect(screen.queryByText(workingText)).toBeNull()
-  })
-
-  it('hides indicator while a tool is running', () => {
-    renderAssistant({
-      parts: [
-        {
-          id: 'tool-1',
-          sessionID: 'session-1',
-          messageID: 'assistant-1',
-          type: 'tool',
-          callID: 'call-1',
-          tool: 'bash',
-          state: {
-            status: 'running',
-            input: { command: 'pwd' },
-            time: { start: 1 },
-          },
-        } satisfies ToolPart,
-      ],
-      isStreaming: true,
-    })
-    expect(screen.queryByText(workingText)).toBeNull()
-  })
-
-  it('hides indicator when not streaming', () => {
-    renderAssistant({ parts: [], isStreaming: false })
-    expect(screen.queryByText(workingText)).toBeNull()
   })
 })
