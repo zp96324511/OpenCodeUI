@@ -828,7 +828,7 @@ export const ModelSelector = memo(
           <span className="text-text-400 shrink-0">
             <CpuIcon />
           </span>
-          <span className="text-[length:var(--fs-sm)] text-text-300 truncate">{displayName}</span>
+          <span className="text-[length:var(--fs-sm)] text-text-300 truncate min-w-0">{displayName}</span>
         </button>
       )
 
