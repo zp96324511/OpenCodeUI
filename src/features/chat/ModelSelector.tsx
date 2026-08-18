@@ -486,10 +486,9 @@ export const ModelSelector = memo(
     useEffect(() => {
       if (trigger !== 'toolbar') return
       const outer = marqueeOuterRef.current
-      const inner = marqueeInnerRef.current
-      if (!outer || !inner) return
+      if (!outer) return
       const measure = () => {
-        const dist = Math.max(0, inner.scrollWidth - outer.clientWidth)
+        const dist = Math.max(0, outer.scrollWidth - outer.clientWidth)
         setMarquee(
           dist > 0
             ? { dist, duration: Math.max(0.3, Math.min(4, dist / 40)) }
@@ -499,7 +498,6 @@ export const ModelSelector = memo(
       measure()
       const ro = new ResizeObserver(measure)
       ro.observe(outer)
-      ro.observe(inner)
       return () => ro.disconnect()
     }, [trigger, displayName])
 
@@ -855,10 +853,10 @@ export const ModelSelector = memo(
           <span className="text-text-400 shrink-0">
             <CpuIcon />
           </span>
-          <span ref={marqueeOuterRef} className="flex-1 min-w-0 overflow-hidden">
+          <span ref={marqueeOuterRef} className="truncate min-w-0 flex-1">
             <span
               ref={marqueeInnerRef}
-              className="inline-block whitespace-nowrap text-[length:var(--fs-sm)] text-text-300"
+              className={marqueeHover && marquee.dist > 0 ? 'inline-block whitespace-nowrap text-text-300' : 'text-text-300'}
               style={{
                 transform: marqueeHover && marquee.dist > 0 ? `translateX(${-marquee.dist}px)` : 'translateX(0)',
                 transition: `transform ${marquee.duration}s ease`,
