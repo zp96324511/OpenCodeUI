@@ -914,6 +914,9 @@ export const ModelSelector = memo(
               {displayName}
             </span>
           </span>
+          <span className="text-text-400 shrink-0">
+            <ChevronDownIcon />
+          </span>
         </button>
       )
 
