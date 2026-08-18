@@ -22,6 +22,7 @@ export function WorkspaceSettings() {
     terminalCopyOnSelect,
     terminalRightClickPaste,
     wakeLock,
+    modelSelectorPosition,
   } = useLayoutStore()
 
   const toggleManualTerminalTitles = () => {
@@ -60,6 +61,19 @@ export function WorkspaceSettings() {
         >
           <Toggle enabled={manualTerminalTitles} onChange={toggleManualTerminalTitles} />
         </SettingRow>
+
+        <SettingField label={t('workspace.modelSelectorPosition')} description={t('workspace.modelSelectorPositionDesc')}>
+          <div className="w-full max-w-[300px]">
+            <SegmentedControl
+              value={modelSelectorPosition}
+              options={[
+                { value: 'header', label: t('workspace.modelSelectorPositionHeader') },
+                { value: 'input', label: t('workspace.modelSelectorPositionInput') },
+              ]}
+              onChange={v => layoutStore.setModelSelectorPosition(v as 'header' | 'input')}
+            />
+          </div>
+        </SettingField>
 
         <SettingField label={t('appearance.diffStyle')} description={t('appearance.diffStyleDesc')}>
           <div className="w-full max-w-[300px]">

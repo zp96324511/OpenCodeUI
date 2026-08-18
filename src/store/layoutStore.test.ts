@@ -159,4 +159,20 @@ describe('LayoutStore panel and terminal layout', () => {
     expect(restored.terminalCopyOnSelect).toBe(true)
     expect(restored.terminalRightClickPaste).toBe(true)
   })
+
+  it('persists and restores model selector position', () => {
+    const store = new LayoutStore()
+
+    expect(store.getState().modelSelectorPosition).toBe('header')
+
+    store.setModelSelectorPosition('input')
+
+    expect(localStorage.getItem('opencode-model-selector-position')).toBe('input')
+    const restored = new LayoutStore().getState()
+    expect(restored.modelSelectorPosition).toBe('input')
+
+    store.setModelSelectorPosition('header')
+    expect(localStorage.getItem('opencode-model-selector-position')).toBe('header')
+    expect(new LayoutStore().getState().modelSelectorPosition).toBe('header')
+  })
 })

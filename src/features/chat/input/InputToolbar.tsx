@@ -4,6 +4,7 @@ import { ChevronDownIcon, SendIcon, StopIcon, PaperclipIcon, AgentIcon, Thinking
 import { DropdownMenu, MenuItem, IconButton, AnimatedPresence } from '../../../components/ui'
 import { ModelSelector, type ModelSelectorHandle } from '../ModelSelector'
 import { useChatViewport } from '../chatViewport'
+import { useLayoutStore } from '../../../store/layoutStore'
 import { isTauri, isTauriMobile, extToMime } from '../../../utils/tauri'
 import type { ApiAgent } from '../../../api/client'
 import type { ModelInfo, FileCapabilities } from '../../../api'
@@ -60,6 +61,7 @@ export function InputToolbar({
 }: InputToolbarProps) {
   const { t } = useTranslation(['chat', 'common'])
   const { presentation } = useChatViewport()
+  const { modelSelectorPosition } = useLayoutStore()
   const isCompact = presentation.isCompact
   const useBrowserFileInput = !isTauri() || isTauriMobile()
 
@@ -309,8 +311,8 @@ export function InputToolbar({
     <div className="flex items-center justify-between px-3 pb-3 relative">
       {/* Left side: Model (mobile) + Agent + Variant selectors */}
       <div className={`flex items-center min-w-0 ${isCompact ? 'gap-1' : 'gap-2'}`}>
-        {/* Model Selector — 移动端显示在最左边 */}
-        {isCompact && onModelChange && (
+        {/* Model Selector — 移动端或"输入框内"模式下显示在最左边（思考强度左侧） */}
+        {(isCompact || modelSelectorPosition === 'input') && onModelChange && (
           <ModelSelector
             ref={modelSelectorRef}
             models={models}

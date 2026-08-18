@@ -125,7 +125,7 @@ export function Header({
 }: HeaderProps) {
   const { t } = useTranslation('chat')
   const { sessionId, sessionDirectory, sessionTitle: currentSessionTitle } = useHeaderSessionMeta()
-  const { rightPanelOpen, bottomPanelOpen } = useLayoutStore()
+  const { rightPanelOpen, bottomPanelOpen, modelSelectorPosition } = useLayoutStore()
   const { refresh } = useSessionContext()
   const { currentDirectory } = useDirectory()
   const { presentation, interaction } = useChatViewport()
@@ -210,7 +210,7 @@ export function Header({
           </IconButton>
         )}
 
-        {!isCompact && (
+        {!isCompact && modelSelectorPosition === 'header' && (
           <ModelSelector
             ref={modelSelectorRef}
             models={models}

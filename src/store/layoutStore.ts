@@ -5,6 +5,15 @@
 // 面板位置
 export type PanelPosition = 'bottom' | 'right'
 
+// 模型选择器位置：对话区左上角 / 输入框内
+export type ModelSelectorPosition = 'header' | 'input'
+
+const MODEL_SELECTOR_POSITIONS: ModelSelectorPosition[] = ['header', 'input']
+
+function isModelSelectorPosition(value: unknown): value is ModelSelectorPosition {
+  return typeof value === 'string' && MODEL_SELECTOR_POSITIONS.includes(value as ModelSelectorPosition)
+}
+
 // 面板内容类型
 export type PanelTabType = 'terminal' | 'files' | 'changes' | 'mcp' | 'skill' | 'worktree'
 type PersistedPanelTabType = Exclude<PanelTabType, 'terminal'>
@@ -113,6 +122,9 @@ interface LayoutState {
   // 屏幕常亮
   wakeLock: boolean
 
+  // 模型选择器位置
+  modelSelectorPosition: ModelSelectorPosition
+
   // 终端交互
   terminalCopyOnSelect: boolean
   terminalRightClickPaste: boolean
@@ -132,6 +144,7 @@ const STORAGE_KEY_BOTTOM_PANEL_HEIGHT = 'opencode-bottom-panel-height'
 const STORAGE_KEY_VIEWPORT_SIDEBAR_WIDTH = 'sidebar-width'
 const STORAGE_KEY_TERMINAL_COPY_ON_SELECT = 'opencode-terminal-copy-on-select'
 const STORAGE_KEY_TERMINAL_RIGHT_CLICK_PASTE = 'opencode-terminal-right-click-paste'
+const STORAGE_KEY_MODEL_SELECTOR_POSITION = 'opencode-model-selector-position'
 
 interface PersistedPanelTab {
   id: string
@@ -318,6 +331,7 @@ export class LayoutStore {
     bottomPanelOpen: false,
     bottomPanelHeight: 250,
     wakeLock: false,
+    modelSelectorPosition: 'header',
     terminalCopyOnSelect: false,
     terminalRightClickPaste: false,
   }
@@ -416,6 +430,11 @@ export class LayoutStore {
       const savedWakeLock = localStorage.getItem(STORAGE_KEY_WAKE_LOCK)
       if (savedWakeLock !== null) {
         this.state.wakeLock = savedWakeLock === 'true'
+      }
+
+      const savedModelSelectorPosition = localStorage.getItem(STORAGE_KEY_MODEL_SELECTOR_POSITION)
+      if (savedModelSelectorPosition !== null && isModelSelectorPosition(savedModelSelectorPosition)) {
+        this.state.modelSelectorPosition = savedModelSelectorPosition
       }
 
       const savedTerminalCopyOnSelect = localStorage.getItem(STORAGE_KEY_TERMINAL_COPY_ON_SELECT)
@@ -533,6 +552,17 @@ export class LayoutStore {
     this.state.wakeLock = enabled
     try {
       localStorage.setItem(STORAGE_KEY_WAKE_LOCK, String(enabled))
+    } catch {
+      /* ignore */
+    }
+    this.notify()
+  }
+
+  setModelSelectorPosition(position: ModelSelectorPosition) {
+    if (this.state.modelSelectorPosition === position) return
+    this.state.modelSelectorPosition = position
+    try {
+      localStorage.setItem(STORAGE_KEY_MODEL_SELECTOR_POSITION, position)
     } catch {
       /* ignore */
     }
@@ -1171,6 +1201,7 @@ export interface LayoutBackup {
   sidebarFolderRecentsShowDiff: boolean
   sidebarShowChildSessions: boolean
   wakeLock: boolean
+  modelSelectorPosition: ModelSelectorPosition
   rightPanelWidth: number
   bottomPanelHeight: number
   panelLayout: PersistedPanelLayout
@@ -1215,6 +1246,7 @@ export function exportLayoutBackup(): LayoutBackup {
     sidebarFolderRecentsShowDiff: state.sidebarFolderRecentsShowDiff,
     sidebarShowChildSessions: state.sidebarShowChildSessions,
     wakeLock: state.wakeLock,
+    modelSelectorPosition: state.modelSelectorPosition,
     rightPanelWidth: state.rightPanelWidth,
     bottomPanelHeight: state.bottomPanelHeight,
     panelLayout: buildPersistedPanelLayout(state),
@@ -1240,6 +1272,9 @@ export function importLayoutBackup(raw: unknown): void {
     typeof parsed?.sidebarWidth === 'number' && Number.isFinite(parsed.sidebarWidth) && parsed.sidebarWidth > 0
       ? Math.round(parsed.sidebarWidth)
       : null
+  const modelSelectorPosition = isModelSelectorPosition(parsed?.modelSelectorPosition)
+    ? parsed.modelSelectorPosition
+    : 'header'
 
   localStorage.setItem(STORAGE_KEY_SIDEBAR, String(parsed?.sidebarExpanded === true))
   localStorage.setItem(STORAGE_KEY_SIDEBAR_FOLDER_RECENTS, String(parsed?.sidebarFolderRecents === true))
@@ -1249,6 +1284,7 @@ export function importLayoutBackup(raw: unknown): void {
   )
   localStorage.setItem(STORAGE_KEY_SIDEBAR_SHOW_CHILD_SESSIONS, String(parsed?.sidebarShowChildSessions === true))
   localStorage.setItem(STORAGE_KEY_WAKE_LOCK, String(parsed?.wakeLock === true))
+  localStorage.setItem(STORAGE_KEY_MODEL_SELECTOR_POSITION, modelSelectorPosition)
   localStorage.setItem(STORAGE_KEY_RIGHT_PANEL_WIDTH, String(rightPanelWidth))
   localStorage.setItem(STORAGE_KEY_BOTTOM_PANEL_HEIGHT, String(bottomPanelHeight))
   localStorage.setItem(STORAGE_KEY_PANEL_LAYOUT, JSON.stringify(panelLayout))

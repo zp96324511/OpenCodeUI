@@ -76,6 +76,7 @@ export const SETTINGS_SEARCH_DEFINITIONS: SettingsSearchDefinition[] = [
     'appearance.wakeLock',
     'appearance.codeWordWrap',
     'workspace.manualTerminalTitles',
+    'workspace.modelSelectorPosition',
     'appearance.diffStyle',
     'workspace.terminalCopyOnSelect',
     'workspace.terminalRightClickPaste',
