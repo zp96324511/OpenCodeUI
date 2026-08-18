@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next'
 import {
   PanelRightIcon,
   PanelBottomIcon,
-  ChevronDownIcon,
   SidebarIcon,
   SplitHorizontalIcon,
   MaximizeIcon,
   MinimizeIcon,
+  ShareIcon,
 } from '../../components/Icons'
 import { IconButton } from '../../components/ui'
 import { ModelSelector, type ModelSelectorHandle } from './ModelSelector'
@@ -103,7 +103,7 @@ function SessionTitleControl({
         <>
           <div className={dividerClass} />
           <button type="button" className={shareButtonClass} title={shareTitle} aria-label={shareTitle} onClick={onShare}>
-            <ChevronDownIcon size={12} />
+            <ShareIcon size={12} />
           </button>
         </>
       )}
