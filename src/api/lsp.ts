@@ -6,47 +6,23 @@ import type { FormatterStatus as SDKFormatterStatus, LspStatus as SDKLspStatus }
 import { getSDKClient, unwrap } from './sdk'
 import { formatPathForApi } from '../utils/directoryUtils'
 
-export interface LSPStatus {
-  running: boolean
-  language?: string
-  capabilities?: string[]
+/** LSP 服务器状态（SDK 原始结构：id/name/root/status） */
+export type LspServerStatus = SDKLspStatus
+/** 格式化器状态（SDK 原始结构：name/extensions/enabled） */
+export type FormatterServerStatus = SDKFormatterStatus
+
+/**
+ * 获取所有 LSP 服务器状态
+ */
+export async function getLspServers(directory?: string): Promise<LspServerStatus[]> {
+  const sdk = getSDKClient()
+  return unwrap<SDKLspStatus[]>(await sdk.lsp.status({ directory: formatPathForApi(directory) }))
 }
 
 /**
- * 获取 LSP 服务状态
+ * 获取所有格式化器状态
  */
-export async function getLspStatus(directory?: string): Promise<LSPStatus> {
+export async function getFormatters(directory?: string): Promise<FormatterServerStatus[]> {
   const sdk = getSDKClient()
-  const result = unwrap<SDKLspStatus[]>(await sdk.lsp.status({ directory: formatPathForApi(directory) }))
-  // SDK 返回 LspStatus[]（id/name/root/status），转换为 UI 层期望的格式
-  if (Array.isArray(result) && result.length > 0) {
-    const first = result[0]
-    return {
-      running: first.status === 'connected',
-      language: first.name,
-    }
-  }
-  return { running: false }
-}
-
-export interface FormatterStatus {
-  available: boolean
-  name?: string
-}
-
-/**
- * 获取格式化器状态
- */
-export async function getFormatterStatus(directory?: string): Promise<FormatterStatus> {
-  const sdk = getSDKClient()
-  const result = unwrap<SDKFormatterStatus[]>(await sdk.formatter.status({ directory: formatPathForApi(directory) }))
-  // SDK 返回 FormatterStatus[]（name/extensions/enabled），转换为 UI 层期望的格式
-  if (Array.isArray(result) && result.length > 0) {
-    const first = result[0]
-    return {
-      available: first.enabled === true,
-      name: first.name,
-    }
-  }
-  return { available: false }
+  return unwrap<SDKFormatterStatus[]>(await sdk.formatter.status({ directory: formatPathForApi(directory) }))
 }

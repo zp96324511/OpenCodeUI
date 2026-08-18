@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
 import { ShareDialog } from '../ShareDialog'
 import { ContextDetailsDialog } from './ContextDetailsDialog'
+import { ConnectionDetails } from './ConnectionDetails'
 import {
   CogIcon,
   SunIcon,
@@ -11,6 +12,7 @@ import {
   MaximizeIcon,
   MinimizeIcon,
   ShareIcon,
+  ChevronRightIcon,
 } from '../../../components/Icons'
 import { CircularProgress } from '../../../components/CircularProgress'
 import { formatTokens, formatCost, useTheme, useSessionStats } from '../../../hooks'
@@ -88,6 +90,7 @@ export function SidebarFooter({
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0, width: 260, fromBottom: false })
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [contextDialogOpen, setContextDialogOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const prevShowLabelsRef = useRef(showLabels)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -212,6 +215,7 @@ export function SidebarFooter({
         fixed z-[9999] rounded-lg border border-border-200/60 glass-alt shadow-lg overflow-hidden
         transition-all duration-150 ease-out
         ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
+        max-h-[min(640px,80vh)] overflow-y-auto
       `}
           style={{
             bottom: window.innerHeight - menuPos.top,
@@ -327,11 +331,30 @@ export function SidebarFooter({
             </button>
           </div>
 
-          {/* Connection Status */}
-          <div className="relative flex items-center gap-2 px-3 py-2 text-[length:var(--fs-xxs)] text-text-300 cursor-default">
+          {/* Connection Status - 可展开连接详情 */}
+          <div className="relative">
             <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-border-200/30" />
-            <div className={`w-1.5 h-1.5 rounded-full ${statusColorClass}`} />
-            <span className="capitalize">{connectionState}</span>
+            <button
+              type="button"
+              onClick={() => setDetailsOpen(open => !open)}
+              aria-expanded={detailsOpen}
+              className="w-full flex items-center gap-2 px-3 py-2 text-[length:var(--fs-xxs)] text-text-300 hover:bg-bg-200/40 transition-colors cursor-pointer"
+            >
+              <span
+                className={`shrink-0 text-text-400 transition-transform duration-150 ${detailsOpen ? 'rotate-90' : ''}`}
+              >
+                <ChevronRightIcon size={12} />
+              </span>
+              <span className={`w-1.5 h-1.5 rounded-full ${statusColorClass}`} />
+              <span className="capitalize">{connectionState}</span>
+              <span className="ml-auto text-text-500">{t('sidebar.connectionDetails')}</span>
+            </button>
+
+            {detailsOpen && (
+              <div className="border-t border-border-200/30 max-h-[45vh] overflow-y-auto">
+                <ConnectionDetails />
+              </div>
+            )}
           </div>
         </div>,
         document.body,
