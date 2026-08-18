@@ -41,6 +41,7 @@ import {
   type ProcessTimelineItem,
 } from './chatPageModel'
 import { useTheme } from '../../hooks/useTheme'
+import { splitSessionKey } from '../../utils/sessionKey'
 import { getStreamingHotIndexes, getTimelineRowYClass, mergeVirtualRangeIndexes } from './chatAreaUtils'
 import { useAutoScroll } from './virtual/useAutoScroll'
 import { useEmptyWorkingShellGate } from './virtual/useEmptyWorkingShellGate'
@@ -114,7 +115,7 @@ interface MessageBodyProps {
   message: Message
   registerMessage?: (id: string, element: HTMLElement | null) => void
   onUndo?: (userMessageId: string) => void
-  onFork?: (message: Message, forkMessageId?: string) => void | Promise<void>
+  onFork?: (message: Message, forkMessageId?: string) => Promise<void> | void
   canUndo?: boolean
   forkMessageId?: string
   turnDuration?: number
@@ -122,6 +123,8 @@ interface MessageBodyProps {
   allowStreamingLayoutAnimation: boolean
   processContentScope?: 'all' | 'process' | 'final' | 'inline'
   onEntryGrowComplete?: (messageId: string) => void
+  /** 数据所属服务器（缺省用活动服务器），用于解析模型显示名 */
+  serverId?: string
 }
 
 const MessageBody = memo(function MessageBody({
@@ -136,6 +139,7 @@ const MessageBody = memo(function MessageBody({
   allowStreamingLayoutAnimation,
   processContentScope = 'all',
   onEntryGrowComplete,
+  serverId,
 }: MessageBodyProps) {
   const messageId = message.info.id
   const isUser = message.info.role === 'user'
@@ -159,6 +163,7 @@ const MessageBody = memo(function MessageBody({
             canUndo={isUser ? canUndo : undefined}
             onEnsureParts={NOOP}
             onEntryGrowComplete={isUser ? onEntryGrowComplete : undefined}
+            serverId={serverId}
           />
         </div>
       </div>
@@ -182,6 +187,8 @@ interface RowProps {
   allowStreamingLayoutAnimation: boolean
   measureElement: (el: HTMLElement | null) => void
   onEntryGrowComplete?: (messageId: string) => void
+  /** 数据所属服务器（缺省用活动服务器），用于解析模型显示名 */
+  serverId?: string
 }
 
 const VirtualRow = memo(
@@ -201,6 +208,7 @@ const VirtualRow = memo(
     allowStreamingLayoutAnimation,
     measureElement,
     onEntryGrowComplete,
+    serverId,
   }: RowProps) {
     const rowRef = useRef<HTMLDivElement | null>(null)
 
@@ -241,6 +249,7 @@ const VirtualRow = memo(
               allowStreamingLayoutAnimation={allowStreamingLayoutAnimation}
               processContentScope={item.processContentScope ?? 'all'}
               onEntryGrowComplete={onEntryGrowComplete}
+              serverId={serverId}
             />
           ) : (
             <div className="flex justify-start">
@@ -264,6 +273,7 @@ const VirtualRow = memo(
                       isTurnLatestAssistant={turnLatestAssistantIds.has(child.message.info.id)}
                       allowStreamingLayoutAnimation={allowStreamingLayoutAnimation}
                       processContentScope={child.processContentScope}
+                      serverId={serverId}
                     />
                   ))}
                 </ProcessCollapseBlock>
@@ -280,6 +290,7 @@ const VirtualRow = memo(
                     isTurnLatestAssistant
                     allowStreamingLayoutAnimation={allowStreamingLayoutAnimation}
                     processContentScope="final"
+                    serverId={serverId}
                   />
                 )}
               </div>
@@ -306,7 +317,8 @@ const VirtualRow = memo(
     prev.turnLatestAssistantIds === next.turnLatestAssistantIds &&
     prev.allowStreamingLayoutAnimation === next.allowStreamingLayoutAnimation &&
     prev.measureElement === next.measureElement &&
-    prev.onEntryGrowComplete === next.onEntryGrowComplete,
+    prev.onEntryGrowComplete === next.onEntryGrowComplete &&
+    prev.serverId === next.serverId,
 )
 
 // ─── 会话缓存（LRU 16） ───────────────────────────────────────
@@ -351,6 +363,8 @@ export const ChatArea = memo(
       const atBottomThreshold = presentation.isCompact ? 150 : AT_BOTTOM_THRESHOLD_PX
       const paddingClass = presentation.isCompact ? 'px-3' : 'px-5'
       const maxWidthClass = isWideMode ? 'max-w-[95%] xl:max-w-6xl' : 'max-w-2xl'
+      // 消息所属服务器（复合 key 含 serverId；缺省用活动服务器）
+      const serverId = sessionId ? splitSessionKey(sessionId).serverId : undefined
 
       // ── 派生数据 ──
       const entries = useMemo(
@@ -994,6 +1008,7 @@ export const ChatArea = memo(
                     allowStreamingLayoutAnimation={allowStreamingLayoutAnimation}
                     measureElement={virtualizer.measureElement as (el: HTMLElement | null) => void}
                     onEntryGrowComplete={emptyShellGate.onEntryGrowComplete}
+                    serverId={serverId}
                   />
                 )
               })}

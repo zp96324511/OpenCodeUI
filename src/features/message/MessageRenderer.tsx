@@ -7,6 +7,7 @@ import { CopyButton, SmoothHeight } from '../../components/ui'
 import { MarkdownRenderer } from '../../components/MarkdownRenderer'
 import { useCompositorExpand, useDisclosureScrollLock } from '../../hooks'
 import { useInputCapabilities } from '../../hooks/useInputCapabilities'
+import { useModels } from '../../hooks/useModels'
 import { useNow } from '../../hooks/useNow'
 import { useTheme } from '../../hooks/useTheme'
 import {
@@ -296,6 +297,8 @@ interface MessageRendererProps {
   onEnsureParts?: (messageId: string) => void
   /** 用户消息入场生长完成（供过程壳等待挂载） */
   onEntryGrowComplete?: (messageId: string) => void
+  /** 数据所属服务器（缺省用活动服务器），用于解析模型显示名 */
+  serverId?: string
 }
 
 export const MessageRenderer = memo(function MessageRenderer({
@@ -310,6 +313,7 @@ export const MessageRenderer = memo(function MessageRenderer({
   canUndo,
   onEnsureParts,
   onEntryGrowComplete,
+  serverId,
 }: MessageRendererProps) {
   const { info } = message
   const isUser = info.role === 'user'
@@ -337,6 +341,7 @@ export const MessageRenderer = memo(function MessageRenderer({
       onFork={onFork}
       forkMessageId={forkMessageId}
       onEnsureParts={onEnsureParts}
+      serverId={serverId}
     />
   )
 })
@@ -705,6 +710,7 @@ const AssistantMessageView = memo(function AssistantMessageView({
   onFork,
   forkMessageId,
   onEnsureParts,
+  serverId,
 }: {
   message: Message
   allowStreamingLayoutAnimation?: boolean
@@ -714,6 +720,8 @@ const AssistantMessageView = memo(function AssistantMessageView({
   onFork?: (message: Message, forkMessageId?: string) => Promise<void> | void
   forkMessageId?: string
   onEnsureParts?: (messageId: string) => void
+  /** 数据所属服务器（缺省用活动服务器），用于解析模型显示名 */
+  serverId?: string
 }) {
   const { t } = useTranslation('message')
   const { parts, isStreaming, info } = message
@@ -792,7 +800,15 @@ const AssistantMessageView = memo(function AssistantMessageView({
   // agent / model（仅 assistant 消息）
   const assistantInfo = info.role === 'assistant' ? (info as AssistantMessageInfo) : null
   const agent = assistantInfo?.agent || undefined
-  const modelLabel = assistantInfo?.modelID || undefined
+  // 优先用配置里的模型 name（useModels 是模块级单例缓存，不会重复请求），查不到回退原始 modelID
+  const { models } = useModels(serverId)
+  const modelLabel = useMemo(() => {
+    if (!assistantInfo) return undefined
+    const resolved = models.find(
+      m => m.providerId === assistantInfo.providerID && m.id === assistantInfo.modelID,
+    )
+    return resolved?.name || assistantInfo.modelID
+  }, [assistantInfo, models])
 
   const hasStepFinishPart = parts.some(part => part.type === 'step-finish')
   const showTurnDurationFooter =
