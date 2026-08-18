@@ -73,6 +73,7 @@ vi.mock('../store/todoStore', () => ({
 
 vi.mock('../store/serverStore', () => ({
   serverStore: {
+    getActiveServerId: () => 'server-1',
     onServerChange: (...args: unknown[]) => onServerChangeMock(...args),
   },
 }))
@@ -244,7 +245,7 @@ describe('SessionProvider', () => {
       latestEventCallbacks.onSessionDeleted?.('session-1')
     })
 
-    expect(clearSessionRuntimeStateMock).toHaveBeenCalledWith('session-1')
+    expect(clearSessionRuntimeStateMock).toHaveBeenCalledWith('server-1::session-1')
     expect(latestContext?.sessions.map(session => session.id)).toEqual(['session-2'])
   })
 

@@ -12,6 +12,7 @@ import { serverStore } from '../store/serverStore'
 import { pinnedSessionsStore } from '../store/pinnedSessionsStore'
 import { useDirectory } from './useDirectory'
 import { sessionErrorHandler, normalizeToForwardSlash, isSameDirectory, autoDetectPathStyle } from '../utils'
+import { makeSessionKey } from '../utils/sessionKey'
 import { clearSessionRuntimeState } from '../utils/sessionLifecycle'
 import { SessionContext, type SessionContextValue } from './SessionContext.shared'
 
@@ -196,11 +197,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         })
       },
       onTodoUpdated: data => {
-        // 更新 todoStore
-        todoStore.setTodos(data.sessionID, data.todos)
+        // todoStore 以复合 key（serverId::sessionId）为键，与 InputFooter 读取一致
+        todoStore.setTodos(makeSessionKey(serverStore.getActiveServerId(), data.sessionID), data.todos)
       },
       onSessionDeleted: sessionId => {
-        clearSessionRuntimeState(sessionId)
+        clearSessionRuntimeState(makeSessionKey(serverStore.getActiveServerId(), sessionId))
         setSessions(prev => prev.filter(s => s.id !== sessionId))
       },
       onReconnected: reason => {
@@ -263,7 +264,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const targetDir = normalizeToForwardSlash(currentDirectory) || undefined
       await apiDeleteSession(id, targetDir)
       pinnedSessionsStore.unpin(id)
-      clearSessionRuntimeState(id)
+      clearSessionRuntimeState(makeSessionKey(serverStore.getActiveServerId(), id))
       setSessions(prev => prev.filter(s => s.id !== id))
     },
     [currentDirectory],
